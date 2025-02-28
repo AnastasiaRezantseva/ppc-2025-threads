@@ -11,7 +11,7 @@ std::vector<double> createRandomVector(const int vec_size) {
   std::vector<double> random_vec(vec_size);
   std::mt19937 gen;
   gen.seed((unsigned)time(nullptr) + ++offset);
-  std::uniform_real_distribution<double> dist(-50.0, 50.0);  // our range
+  std::uniform_real_distribution<double> dist(-50.0, 50.0);
 
   for (int i = 0; i < vec_size; i++) {
     random_vec[i] = dist(gen);
