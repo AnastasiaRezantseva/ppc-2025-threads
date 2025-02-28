@@ -130,6 +130,56 @@ TEST(rezantseva_shell_batcher_seq, shell_sort_test_with_random_vector_size_50) {
   EXPECT_EQ(input, out);
 }
 
+TEST(rezantseva_shell_batcher_seq, shell_sort_test_with_random_vector_size_3) {
+  // Create data
+  int vec_size = 3;
+  std::vector<double> input = rezantseva_shell_batcher_seq::createRandomVector(vec_size);
+  std::vector<double> out(input.size(), 0.0);
+  // Create task_data
+  auto task_data_seq = std::make_shared<ppc::core::TaskData>();
+
+  task_data_seq->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_seq->inputs_count.emplace_back(input.size());
+
+  task_data_seq->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_seq->outputs_count.emplace_back(out.size());
+
+  // Create Task
+  rezantseva_shell_batcher_seq::ShellBatcherSortSequential test_shell_batcher(task_data_seq);
+  ASSERT_EQ(test_shell_batcher.Validation(), true);
+  test_shell_batcher.PreProcessing();
+  test_shell_batcher.Run();
+  test_shell_batcher.PostProcessing();
+
+  std::sort(input.begin(), input.end());
+  EXPECT_EQ(input, out);
+}
+
+TEST(rezantseva_shell_batcher_seq, shell_sort_test_with_random_vector_size_25) {
+  // Create data
+  int vec_size = 25;
+  std::vector<double> input = rezantseva_shell_batcher_seq::createRandomVector(vec_size);
+  std::vector<double> out(input.size(), 0.0);
+  // Create task_data
+  auto task_data_seq = std::make_shared<ppc::core::TaskData>();
+
+  task_data_seq->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_seq->inputs_count.emplace_back(input.size());
+
+  task_data_seq->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_seq->outputs_count.emplace_back(out.size());
+
+  // Create Task
+  rezantseva_shell_batcher_seq::ShellBatcherSortSequential test_shell_batcher(task_data_seq);
+  ASSERT_EQ(test_shell_batcher.Validation(), true);
+  test_shell_batcher.PreProcessing();
+  test_shell_batcher.Run();
+  test_shell_batcher.PostProcessing();
+
+  std::sort(input.begin(), input.end());
+  EXPECT_EQ(input, out);
+}
+
 TEST(rezantseva_shell_batcher_seq, shell_sort_test_with_random_vector_size_20) {
   // Create data
   int vec_size = 20;
