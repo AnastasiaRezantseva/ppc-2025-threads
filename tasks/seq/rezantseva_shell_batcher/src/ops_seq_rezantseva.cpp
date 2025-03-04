@@ -7,15 +7,16 @@ std::vector<double> rezantseva_shell_batcher_seq::ShellBatcherSortSequential::sh
   std::vector<double> result(v);
 
   for (size_t step = n / 2; step > 0; step /= 2) {
-    for (int i = step; i < n; i++) {
-      for (int j = i - step; j >= 0 && result[j] > result[j + step]; j -= step) {  // Compare elements at a distance
-                                                                                   // step
-        double tmp = result[j];
-        result[j] = result[j + step];
-        result[j + step] = tmp;
+    for (size_t i = step; i < n; i++) {
+      double temp = result[i];
+      size_t j;
+      for (j = i; j >= step && result[j - step] > temp; j -= step) {
+        result[j] = result[j - step];
       }
+      result[j] = temp;
     }
   }
+
   return result;
 }
 
