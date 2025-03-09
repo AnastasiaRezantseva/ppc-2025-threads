@@ -9,6 +9,7 @@
 
 namespace rezantseva_shell_batcher_omp {
 std::vector<double> ShellSortSeq(const std::vector<double>& v);
+void ShellSortInPlace(std::vector<double>& v);
 
 class ShellBatcherSortSequential : public ppc::core::Task {
  public:
@@ -32,6 +33,10 @@ class ShellBatcherSortOMP : public ppc::core::Task {
 
  private:
   std::vector<double> input_, result_;
+
+  // std::vector<double> MyBatcherMergeOMPInPlace(std::vector<double>& a, std::vector<double>& b);
+  // std::vector<double> MyShellSortOMPInPlace(std::vector<double>& v);
+
   std::vector<double> MyBatcherMergeOMP(const std::vector<double>& a, const std::vector<double>& b);
   std::vector<double> MyShellSortOMP(const std::vector<double>& v);
 };

@@ -21,6 +21,20 @@ std::vector<double> rezantseva_shell_batcher_omp::ShellSortSeq(const std::vector
   return result;
 }
 
+void rezantseva_shell_batcher_omp::ShellSortInPlace(std::vector<double> &v) {
+  size_t n = v.size();
+  for (size_t step = n / 2; step > 0; step /= 2) {
+    for (size_t i = step; i < n; i++) {
+      double temp = v[i];
+      size_t j;
+      for (j = i; j >= step && v[j - step] > temp; j -= step) {
+        v[j] = v[j - step];
+      }
+      v[j] = temp;
+    }
+  }
+}
+
 bool rezantseva_shell_batcher_omp::ShellBatcherSortSequential::ValidationImpl() {
   // Check equality of counts elements
   return task_data->inputs_count[0] > 1 && task_data->outputs_count[0] > 1 && task_data->inputs_count.size() == 1 &&
@@ -136,9 +150,9 @@ std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::MyShellSo
     // Локальный вектор для сортировки
     std::vector<double> local_vec(result.begin() + start, result.begin() + end);
 
-    local_vec = ShellSortSeq(local_vec);
-
-    //  Сохранение отсортированной части
+    // local_vec = ShellSortSeq(local_vec);
+    ShellSortInPlace(local_vec);
+    //   Сохранение отсортированной части
     sorted_parts[curr_thread] = local_vec;
   }
 

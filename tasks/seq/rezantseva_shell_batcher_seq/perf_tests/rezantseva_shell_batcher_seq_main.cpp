@@ -1,12 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <random>
 
 #include "core/perf/include/perf.hpp"
 #include "core/task/include/task.hpp"
-#include "omp/rezantseva_shell_batcher_omp/include/rezantseva_shell_batcher_omp.hpp"
+#include "seq/rezantseva_shell_batcher_seq/include/rezantseva_shell_batcher_seq.hpp"
+
 static int offset = 0;
-namespace rezantseva_shell_batcher_omp {
+
+namespace rezantseva_shell_batcher_seq {
 
 std::vector<double> createRandomVector(const int vec_size) {
   std::vector<double> random_vec(vec_size);
@@ -20,25 +23,24 @@ std::vector<double> createRandomVector(const int vec_size) {
 
   return random_vec;
 }
-}  // namespace rezantseva_shell_batcher_omp
+}  // namespace rezantseva_shell_batcher_seq
 
-TEST(rezantseva_shell_batcher_omp, test_pipeline_run) {
+TEST(rezantseva_shell_batcher_seq, test_pipeline_run) {
   // Create data
   int vec_size = 1000000;
-  std::vector<double> input = rezantseva_shell_batcher_omp::createRandomVector(vec_size);
+  std::vector<double> input = rezantseva_shell_batcher_seq::createRandomVector(vec_size);
   std::vector<double> out(input.size(), 0.0);
-
   // Create task_data
-  auto task_data_omp = std::make_shared<ppc::core::TaskData>();
+  auto task_data_seq = std::make_shared<ppc::core::TaskData>();
 
-  task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
-  task_data_omp->inputs_count.emplace_back(input.size());
+  task_data_seq->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_seq->inputs_count.emplace_back(input.size());
 
-  task_data_omp->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
-  task_data_omp->outputs_count.emplace_back(out.size());
+  task_data_seq->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  auto test_task_omp = std::make_shared<rezantseva_shell_batcher_omp::ShellBatcherSortOMP>(task_data_omp);
+  auto test_task_sequential = std::make_shared<rezantseva_shell_batcher_seq::ShellBatcherSortSequential>(task_data_seq);
 
   // Create Perf attributes
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
@@ -54,30 +56,30 @@ TEST(rezantseva_shell_batcher_omp, test_pipeline_run) {
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
 
   // Create Perf analyzer
-  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_omp);
+  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_sequential);
   perf_analyzer->PipelineRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
+
   std::sort(input.begin(), input.end());
   ASSERT_EQ(input, out);
 }
 
-TEST(rezantseva_shell_batcher_omp, test_task_run) {
+TEST(rezantseva_shell_batcher_seq, test_task_run) {
   // Create data
   int vec_size = 1000000;
-  std::vector<double> input = rezantseva_shell_batcher_omp::createRandomVector(vec_size);
+  std::vector<double> input = rezantseva_shell_batcher_seq::createRandomVector(vec_size);
   std::vector<double> out(input.size(), 0.0);
-
   // Create task_data
-  auto task_data_omp = std::make_shared<ppc::core::TaskData>();
+  auto task_data_seq = std::make_shared<ppc::core::TaskData>();
 
-  task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
-  task_data_omp->inputs_count.emplace_back(input.size());
+  task_data_seq->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_seq->inputs_count.emplace_back(input.size());
 
-  task_data_omp->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
-  task_data_omp->outputs_count.emplace_back(out.size());
+  task_data_seq->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_seq->outputs_count.emplace_back(out.size());
 
   // Create Task
-  auto test_task_omp = std::make_shared<rezantseva_shell_batcher_omp::ShellBatcherSortOMP>(task_data_omp);
+  auto test_task_sequential = std::make_shared<rezantseva_shell_batcher_seq::ShellBatcherSortSequential>(task_data_seq);
 
   // Create Perf attributes
   auto perf_attr = std::make_shared<ppc::core::PerfAttr>();
@@ -93,9 +95,10 @@ TEST(rezantseva_shell_batcher_omp, test_task_run) {
   auto perf_results = std::make_shared<ppc::core::PerfResults>();
 
   // Create Perf analyzer
-  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_omp);
+  auto perf_analyzer = std::make_shared<ppc::core::Perf>(test_task_sequential);
   perf_analyzer->TaskRun(perf_attr, perf_results);
   ppc::core::Perf::PrintPerfStatistic(perf_results);
+
   std::sort(input.begin(), input.end());
   ASSERT_EQ(input, out);
 }
