@@ -2,6 +2,7 @@
 
 #include <omp.h>
 
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -33,12 +34,14 @@ class ShellBatcherSortOMP : public ppc::core::Task {
 
  private:
   std::vector<double> input_, result_;
+  std::vector<double> ShellSortOMP(const std::vector<double>& v);
 
-  // std::vector<double> MyBatcherMergeOMPInPlace(std::vector<double>& a, std::vector<double>& b);
-  // std::vector<double> MyShellSortOMPInPlace(std::vector<double>& v);
+  std::vector<double> BatcherMerge(std::vector<double> v1, std::vector<double> v2);
+  std::vector<double> EvenBatcher(std::vector<double> v1, std::vector<double> v2);
+  std::vector<double> OddBatcher(std::vector<double> v1, std::vector<double> v2);
 
-  std::vector<double> MyBatcherMergeOMP(const std::vector<double>& a, const std::vector<double>& b);
-  std::vector<double> MyShellSortOMP(const std::vector<double>& v);
+  std::vector<double> EvenOddBatcher(std::vector<double>& v1, std::vector<double>& v2, bool isEven);
+  std::vector<double> MyBatcherMerge(std::vector<double>&& v1, std::vector<double>&& v2);
+  std::vector<double> ShellSortBatcherMergeOMP(const std::vector<double>& v);
 };
-
 }  // namespace rezantseva_shell_batcher_omp

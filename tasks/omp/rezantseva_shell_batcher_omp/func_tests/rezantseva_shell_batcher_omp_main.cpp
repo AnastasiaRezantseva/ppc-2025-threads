@@ -56,7 +56,55 @@ TEST(rezantseva_shell_batcher_omp, shell_sort_test_vec_size_1) {
   ASSERT_FALSE(test_shell_batcher.Validation());
 }
 
-TEST(rezantseva_shell_batcher_omp, shell_sort_test) {
+TEST(rezantseva_shell_batcher_omp, shell_sort_test_4_elements) {
+  // Create data
+  std::vector<double> input = {34.27, -2.9, 45.37, 12.7};
+  std::vector<double> sorted = {-2.9, 12.7, 34.27, 45.37};
+  std::vector<double> out(input.size(), 0.0);
+  // Create task_data
+  auto task_data_omp = std::make_shared<ppc::core::TaskData>();
+
+  task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_omp->inputs_count.emplace_back(input.size());
+
+  task_data_omp->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_omp->outputs_count.emplace_back(out.size());
+
+  // Create Task
+  rezantseva_shell_batcher_omp::ShellBatcherSortOMP test_shell_batcher(task_data_omp);
+  ASSERT_EQ(test_shell_batcher.Validation(), true);
+  test_shell_batcher.PreProcessing();
+  test_shell_batcher.Run();
+  test_shell_batcher.PostProcessing();
+
+  EXPECT_EQ(sorted, out);
+}
+
+TEST(rezantseva_shell_batcher_omp, shell_sort_test_8_elements) {
+  // Create data
+  std::vector<double> input = {34.27, -2.9, 45.37, 12.7, 8.02, -10.1, 3.4, 0.0};
+  std::sort(input.begin(), input.end());
+  std::vector<double> out(input.size(), 0.0);
+  // Create task_data
+  auto task_data_omp = std::make_shared<ppc::core::TaskData>();
+
+  task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_omp->inputs_count.emplace_back(input.size());
+
+  task_data_omp->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_omp->outputs_count.emplace_back(out.size());
+
+  // Create Task
+  rezantseva_shell_batcher_omp::ShellBatcherSortOMP test_shell_batcher(task_data_omp);
+  ASSERT_EQ(test_shell_batcher.Validation(), true);
+  test_shell_batcher.PreProcessing();
+  test_shell_batcher.Run();
+  test_shell_batcher.PostProcessing();
+
+  EXPECT_EQ(input, out);
+}
+
+TEST(rezantseva_shell_batcher_omp, shell_sort_test_11_elements) {
   // Create data
   std::vector<double> input = {34.27, -2.9, 45.37, 12.7, 8.02, -10.1, 3.4, 0.0, 7.89, 23.3, 34.01};
   std::vector<double> sorted = {-10.1, -2.9, 0.0, 3.4, 7.89, 8.02, 12.7, 23.3, 34.01, 34.27, 45.37};
@@ -80,10 +128,9 @@ TEST(rezantseva_shell_batcher_omp, shell_sort_test) {
   EXPECT_EQ(sorted, out);
 }
 
-TEST(rezantseva_shell_batcher_omp, shell_sort_test_with_repeating_elements) {
+TEST(rezantseva_shell_batcher_omp, shell_sort_test_with_repeating_elements_12) {
   // Create data
   std::vector<double> input = {34.27, -2.9, 45.37, 12.7, 8.02, -10.1, 45.37, 3.4, 0.0, 7.89, 23.3, 34.01};
-  std::vector<double> sorted = {-10.1, -2.9, 0.0, 3.4, 7.89, 8.02, 12.7, 23.3, 34.01, 34.27, 45.37, 45.37};
   std::vector<double> out(input.size(), 0.0);
   // Create task_data
   auto task_data_omp = std::make_shared<ppc::core::TaskData>();
@@ -101,7 +148,57 @@ TEST(rezantseva_shell_batcher_omp, shell_sort_test_with_repeating_elements) {
   test_shell_batcher.Run();
   test_shell_batcher.PostProcessing();
 
-  EXPECT_EQ(sorted, out);
+  std::sort(input.begin(), input.end());
+  EXPECT_EQ(input, out);
+}
+
+TEST(rezantseva_shell_batcher_omp, shell_sort_test_with_random_vector_size_16) {
+  // Create data
+  int vec_size = 16;
+  std::vector<double> input = rezantseva_shell_batcher_omp::createRandomVector(vec_size);
+  std::vector<double> out(input.size(), 0.0);
+  // Create task_data
+  auto task_data_omp = std::make_shared<ppc::core::TaskData>();
+
+  task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_omp->inputs_count.emplace_back(input.size());
+
+  task_data_omp->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_omp->outputs_count.emplace_back(out.size());
+
+  // Create Task
+  rezantseva_shell_batcher_omp::ShellBatcherSortOMP test_shell_batcher(task_data_omp);
+  ASSERT_EQ(test_shell_batcher.Validation(), true);
+  test_shell_batcher.PreProcessing();
+  test_shell_batcher.Run();
+  test_shell_batcher.PostProcessing();
+
+  std::sort(input.begin(), input.end());
+  EXPECT_EQ(input, out);
+}
+TEST(rezantseva_shell_batcher_omp, shell_sort_test_with_random_vector_size_32) {
+  // Create data
+  int vec_size = 32;
+  std::vector<double> input = rezantseva_shell_batcher_omp::createRandomVector(vec_size);
+  std::vector<double> out(input.size(), 0.0);
+  // Create task_data
+  auto task_data_omp = std::make_shared<ppc::core::TaskData>();
+
+  task_data_omp->inputs.emplace_back(reinterpret_cast<uint8_t *>(input.data()));
+  task_data_omp->inputs_count.emplace_back(input.size());
+
+  task_data_omp->outputs.emplace_back(reinterpret_cast<uint8_t *>(out.data()));
+  task_data_omp->outputs_count.emplace_back(out.size());
+
+  // Create Task
+  rezantseva_shell_batcher_omp::ShellBatcherSortOMP test_shell_batcher(task_data_omp);
+  ASSERT_EQ(test_shell_batcher.Validation(), true);
+  test_shell_batcher.PreProcessing();
+  test_shell_batcher.Run();
+  test_shell_batcher.PostProcessing();
+
+  std::sort(input.begin(), input.end());
+  EXPECT_EQ(input, out);
 }
 
 TEST(rezantseva_shell_batcher_omp, shell_sort_test_with_random_vector_size_50) {
