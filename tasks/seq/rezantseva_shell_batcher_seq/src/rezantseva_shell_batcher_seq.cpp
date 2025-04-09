@@ -1,5 +1,6 @@
 #include "seq/rezantseva_shell_batcher_seq/include/rezantseva_shell_batcher_seq.hpp"
 
+#include <iostream>
 std::vector<double> rezantseva_shell_batcher_seq::ShellBatcherSortSequential::shellSort(const std::vector<double> &v) {
   size_t n = v.size();
   std::vector<double> result(v);
@@ -35,7 +36,11 @@ bool rezantseva_shell_batcher_seq::ShellBatcherSortSequential::PreProcessingImpl
 }
 
 bool rezantseva_shell_batcher_seq::ShellBatcherSortSequential::RunImpl() {
+  auto start = std::chrono::steady_clock::now();
   result_ = shellSort(input_);
+  auto end = std::chrono::steady_clock::now();
+  std::chrono::duration<double> elapsed = end - start;
+  std::cout << " sort time = " << elapsed << " " << std::endl;
   return true;
 }
 

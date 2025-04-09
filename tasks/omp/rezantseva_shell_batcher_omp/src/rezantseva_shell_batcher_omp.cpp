@@ -90,137 +90,6 @@ bool rezantseva_shell_batcher_omp::ShellBatcherSortOMP::PostProcessingImpl() {
 }
 
 //------------------------------------------------------------------------------------------------------------------//
-std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::ShellSortOMP(const std::vector<double> &v) {
-  omp_set_num_threads(threads);
-  std::vector<double> result(v);
-  int v_size = result.size();
-  std::size_t delta = v_size / threads;
-  std::size_t remainder = v_size % threads;
-  std::vector<std::vector<double>> sorted_parts(threads);
-
-#pragma omp parallel shared(result, remainder, sorted_parts)
-  {
-    std::size_t curr_thread = omp_get_thread_num();
-
-    // Data for current thread
-    std::size_t start = curr_thread * delta + (curr_thread < remainder ? curr_thread : remainder);
-    std::size_t end = start + delta + (curr_thread < remainder ? 1 : 0);
-
-    std::vector<double> local_vec(result.begin() + start, result.begin() + end);
-    ShellSortInPlace(local_vec);
-    // Save sorted part
-
-    sorted_parts[curr_thread] = local_vec;
-  }
-
-  // Merge sorted parts
-  result = sorted_parts[0];
-  for (size_t i = 1; i < threads; i++) {
-    // result = BatcherMerge(result, sorted_parts[i]);
-    // result = MyBatcherMerge(result, sorted_parts[i]);
-  }
-
-  return result;
-}
-//------------------------------------------------------------------------------------------------------------------//
-
-std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::BatcherMerge(std::vector<double> v1,
-                                                                                    std::vector<double> v2) {
-  std::vector<double> even = EvenBatcher(v1, v2);
-  std::vector<double> odd = OddBatcher(v1, v2);
-  std::vector<double> result(even.size() + odd.size());
-  int even_size = even.size();
-  int odd_size = odd.size();
-  int i = 0, j = 0, k = 0;
-
-  while (j < even_size && k < odd_size) {
-    result[i++] = even[j++];
-    result[i++] = odd[k++];
-  }
-
-  while (j < even_size) {
-    result[i++] = even[j++];
-  }
-
-  while (k < odd_size) {
-    result[i++] = odd[k++];
-  }
-
-#pragma omp parallel for
-  for (int h = 0; h < result.size() - 1; h++) {
-    if (result[h] > result[h + 1]) {
-      std::swap(result[h], result[h + 1]);
-    }
-  }
-
-  return result;
-}
-
-std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::EvenBatcher(std::vector<double> v1,
-                                                                                   std::vector<double> v2) {
-  int v1_size = v1.size();
-  int v2_size = v2.size();
-  std::vector<double> result;
-  result.reserve(v1_size / 2 + v2_size / 2 + v1_size % 2 + v2_size % 2);
-
-  int i = 0, j = 0;
-
-  while (i < v1_size && j < v2_size) {
-    if (v1[i] <= v2[j]) {
-      result.push_back(v1[i]);
-      i += 2;
-    } else {
-      result.push_back(v2[j]);
-      j += 2;
-    }
-  }
-
-  while (i < v1_size) {
-    result.push_back(v1[i]);
-    i += 2;
-  }
-
-  while (j < v2_size) {
-    result.push_back(v2[j]);
-    j += 2;
-  }
-
-  return result;
-}
-
-std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::OddBatcher(std::vector<double> v1,
-                                                                                  std::vector<double> v2) {
-  int v1_size = v1.size();
-  int v2_size = v2.size();
-  std::vector<double> result;
-  result.reserve(v1_size / 2 + v2_size / 2);
-
-  int i = 1, j = 1;
-
-  while (i < v1_size && j < v2_size) {
-    if (v1[i] <= v2[j]) {
-      result.push_back(v1[i]);
-      i += 2;
-    } else {
-      result.push_back(v2[j]);
-      j += 2;
-    }
-  }
-
-  while (i < v1_size) {
-    result.push_back(v1[i]);
-    i += 2;
-  }
-
-  while (j < v2_size) {
-    result.push_back(v2[j]);
-    j += 2;
-  }
-
-  return result;
-}
-
-//------------------------------------------------------------------------------------------------------------------//
 std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::EvenOddBatcher(std::vector<double> &v1,
                                                                                       std::vector<double> &v2,
                                                                                       bool isEven) {
@@ -228,7 +97,6 @@ std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::EvenOddBa
   int v2_size = v2.size();
   int start = isEven ? 0 : 1;
 
-  // Calculate result size
   const int result_size = ((v1_size - start + 1) / 2) + ((v2_size - start + 1) / 2);
 
   std::vector<double> result;
@@ -259,8 +127,8 @@ std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::EvenOddBa
   return result;
 }
 
-std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::MyBatcherMerge(std::vector<double> &&v1,
-                                                                                      std::vector<double> &&v2) {
+std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::BatcherMerge(std::vector<double> &&v1,
+                                                                                    std::vector<double> &&v2) {
   std::vector<double> even, odd;
 #pragma omp parallel sections
   {
@@ -306,7 +174,7 @@ std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::ShellSort
   size_t delta = v_size / threads;
   size_t remainder = v_size % threads;
   std::vector<std::vector<double>> sorted_parts(threads);
-
+  auto start_time = std::chrono::steady_clock::now();
 // Sort parts
 #pragma omp parallel shared(result, remainder, sorted_parts)
   {
@@ -318,24 +186,25 @@ std::vector<double> rezantseva_shell_batcher_omp::ShellBatcherSortOMP::ShellSort
     ShellSortInPlace(local_vec);
     sorted_parts[curr_thread] = local_vec;
   }
+  auto end = std::chrono::steady_clock::now();
+  std::chrono::duration<double> elapsed = end - start_time;
 
+  if (omp_get_thread_num() == 0) {
+    std::cout << " sort time = " << elapsed << " " << std::endl;
+  }
   // Batcher Merge
   while (sorted_parts.size() > 1) {
     const size_t new_size = (sorted_parts.size() + 1) / 2;
     std::vector<std::vector<double>> parts(new_size);
-    // how much pairs can merge now
     const size_t pairs_count = sorted_parts.size() / 2;
 
 #pragma omp parallel for
     for (int i = 0; i < pairs_count; ++i) {
-      parts[i] = MyBatcherMerge(std::move(sorted_parts[2 * i]), std::move(sorted_parts[2 * i + 1]));
+      parts[i] = BatcherMerge(std::move(sorted_parts[2 * i]), std::move(sorted_parts[2 * i + 1]));
     }
-
-    // Add an unpaired element if there is one
     if (sorted_parts.size() % 2 != 0) {
       parts.back() = std::move(sorted_parts.back());
     }
-    // update parts which one need to merge
     sorted_parts = std::move(parts);
   }
   result = sorted_parts[0];
